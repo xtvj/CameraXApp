@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.leo.cameraxlib">
+    <!-- Declare features -->
+    <uses-feature android:name="android.hardware.camera" />
+
+    <!-- Declare permissions -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <application>
+        <activity
+            android:name=".ui.activity.CameraXImgActivity"
+            android:clearTaskOnLaunch="true"
+            android:rotationAnimation="seamless"
+            android:screenOrientation="fullUser"
+            android:theme="@style/CameraTheme"
+            tools:targetApi="O">
+            <!-- Register as a system camera app -->
+            <intent-filter>
+                <action android:name="android.media.action.IMAGE_CAPTURE" />
+                <action android:name="android.media.action.STILL_IMAGE_CAMERA" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <!-- Declare notch support -->
+            <meta-data
+                android:name="android.notch_support"
+                android:value="true" />
+        </activity>
+
+        <activity
+            android:name=".ui.activity.WechatCameraXActivity"
+            android:clearTaskOnLaunch="true"
+            android:rotationAnimation="seamless"
+            android:screenOrientation="fullUser"
+            android:theme="@style/CameraTheme"
+            tools:targetApi="O">
+            <!-- Register as a system camera app -->
+            <intent-filter>
+                <action android:name="android.media.action.IMAGE_CAPTURE" />
+                <action android:name="android.media.action.STILL_IMAGE_CAMERA" />
+                <action android:name="android.media.action.VIDEO_CAMERA" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <!-- Declare notch support -->
+            <meta-data
+                android:name="android.notch_support"
+                android:value="true" />
+        </activity>
+    </application>
+
+</manifest>
