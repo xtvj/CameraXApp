@@ -13,7 +13,7 @@ import com.leo.commonutil.notify.ToastUtil
 class MainActivity : AppCompatActivity() {
     companion object {
         const val IMG_REQUEST = 0
-        const val IMG_VIDEO_REQUEST = 0
+        const val IMG_VIDEO_REQUEST = 1
     }
 
     private lateinit var mTakePhotoBtn: Button
