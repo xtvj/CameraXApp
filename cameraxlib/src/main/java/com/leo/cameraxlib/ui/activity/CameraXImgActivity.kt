@@ -74,7 +74,7 @@ class CameraXImgActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_camerax)
+        setContentView(R.layout.activity_camerax_img)
         container = findViewById(R.id.camera_container)
         viewFinder = findViewById(R.id.view_finder)
         // Initialize our background executor
@@ -168,7 +168,7 @@ class CameraXImgActivity : AppCompatActivity() {
                 .build()
 
             // Attach the viewfinder's surface provider to preview use case
-            preview?.setSurfaceProvider(viewFinder.createSurfaceProvider(camera?.cameraInfo))
+            preview?.setSurfaceProvider(viewFinder.createSurfaceProvider())
 
             // ImageCapture
             imageCapture = ImageCapture.Builder()

@@ -1,19 +1,33 @@
 package com.leo.cameraxlib.ui.view
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.util.AttributeSet
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.leo.cameraxlib.R
 import com.leo.cameraxlib.ui.enums.CameraState
 
-class WechatCameraUiContainer {
+class CameraControllerLayout : FrameLayout {
+    private val mHandler: Handler = Handler(Looper.getMainLooper())
+    private var mOnControlCallback: IControlCallback? = null
+
+    /**
+     * 用户操作
+     */
+    private var isPressRecord = false
+    private var mState = CameraState.PREVIEW
+
     private lateinit var mCameraSwitchButton: ImageView
     private lateinit var mBtnRecord: CircleProgressButton
     private lateinit var mTvRecordTip: TextView
@@ -21,19 +35,6 @@ class WechatCameraUiContainer {
     private lateinit var mBack: ImageView
     private lateinit var mBtnCancel: ImageView
     private lateinit var mBtnOK: ImageView
-
-    private var mOnControlCallback: OnControlCallback? = null
-    private var backgroundHandler: Handler = Handler(Looper.getMainLooper())
-    /**
-     * 用户操作
-     */
-    private var isPressRecord = false
-    // 是否允许拍照
-    private var mIsAllowCapture = true
-    // 是否允许录像
-    private var mIsAllowRecord = false
-
-    private var mState = CameraState.PREVIEW
 
     /**
      * 捕获按钮动画
@@ -47,12 +48,54 @@ class WechatCameraUiContainer {
         0f, Animation.RELATIVE_TO_SELF, 0f, Animation.RELATIVE_TO_SELF, 0f
     )
 
+    constructor(context: Context) : super(context)
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
+        context,
+        attrs,
+        defStyleAttr
+    )
+
+    constructor(
+        context: Context,
+        attrs: AttributeSet?,
+        defStyleAttr: Int,
+        defStyleRes: Int
+    ) : super(context, attrs, defStyleAttr, defStyleRes)
+
     init {
         leftAction.duration = 200
         rightAction.duration = 200
     }
 
-    fun initView(view: View) {
+    fun setState(@CameraState state: Int) {
+        this.mState = state
+        if (state == CameraState.PICTURE_TAKEN
+            || state == CameraState.RECORD_PROCESS
+        ) {
+            showBtnLayout()
+        }
+        mHandler.post {
+            mTvRecordTip.visibility =
+                if (state == CameraState.PREVIEW) View.VISIBLE else View.GONE
+            mBtnRecord.visibility =
+                if (state == CameraState.PREVIEW
+                    || state == CameraState.RECORDING
+                ) View.VISIBLE else View.GONE
+            mBack.visibility =
+                if (state == CameraState.PREVIEW) View.VISIBLE else View.GONE
+            mContrainerLl.visibility =
+                if (state == CameraState.PICTURE_TAKEN
+                    || state == CameraState.RECORD_PROCESS
+                    || state == CameraState.RECORD_TAKEN
+                ) View.VISIBLE else View.GONE
+        }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    fun load(callback: IControlCallback) {
+        val view =
+            LayoutInflater.from(context).inflate(R.layout.wechat_camera_ui_container, this)
         mCameraSwitchButton = view.findViewById(R.id.camera_switch_button)
         mCameraSwitchButton.setOnClickListener {
             mOnControlCallback?.onSwitchCamera()
@@ -65,7 +108,7 @@ class WechatCameraUiContainer {
         }
         mBtnCancel = view.findViewById(R.id.mBtnCancel)
         mBtnCancel.setOnClickListener {
-            mOnControlCallback?.onCancal()
+            mOnControlCallback?.onCancel()
         }
         mBtnOK = view.findViewById(R.id.mBtnOK)
         mBtnOK.setOnClickListener {
@@ -78,7 +121,7 @@ class WechatCameraUiContainer {
                     Log.e("LEOTEST", "MotionEvent.ACTION_DOWN")
                     isPressRecord = true
                     //
-                    backgroundHandler?.postDelayed(launchRunnable, 500)
+                    mHandler.postDelayed(launchRunnable, 500)
                 }
                 MotionEvent.ACTION_MOVE -> {
 //                    Log.e(TAG,"ACTION_MOVE Y: ${event.y}")
@@ -98,7 +141,7 @@ class WechatCameraUiContainer {
         }
         mBtnRecord.setOnFinishCallBack(object : CircleProgressButton.OnFinishCallback {
             override fun progressStart() {
-                backgroundHandler?.postDelayed(startRecordRunnable, 0L)
+                mHandler.postDelayed(startRecordRunnable, 0L)
             }
 
             override fun progressFinish() {
@@ -107,33 +150,7 @@ class WechatCameraUiContainer {
                 unPressRecord()
             }
         })
-    }
-
-    fun setState(@CameraState state: Int) {
-        this.mState = state
-        if (state == CameraState.PICTURE_TAKEN
-            || state == CameraState.RECORD_PROCESS
-        ) {
-            showBtnLayout()
-        }
-        backgroundHandler.post {
-            mTvRecordTip.visibility = if (state == CameraState.PREVIEW) View.VISIBLE else View.GONE
-            mBtnRecord.visibility =
-                if (state == CameraState.PREVIEW
-                    || state == CameraState.RECORDING
-                ) View.VISIBLE else View.GONE
-            mBack.visibility = if (state == CameraState.PREVIEW) View.VISIBLE else View.GONE
-            mContrainerLl.visibility =
-                if (state == CameraState.PICTURE_TAKEN
-                    || state == CameraState.RECORD_PROCESS
-                    || state == CameraState.RECORD_TAKEN
-                ) View.VISIBLE else View.GONE
-        }
-    }
-
-    fun init(view: View, callback: OnControlCallback) {
         this.mOnControlCallback = callback
-        initView(view)
         setState(CameraState.PREVIEW)
     }
 
@@ -143,13 +160,11 @@ class WechatCameraUiContainer {
     }
 
     private fun unPressRecord() {
-        backgroundHandler?.removeCallbacks(launchRunnable)
+        mHandler.removeCallbacks(launchRunnable)
         when (mState) {
             CameraState.PREVIEW -> {
-                if (mIsAllowCapture) {
-                    //手指松开还未开始录像 进行拍照
-                    mOnControlCallback?.onCapture()
-                }
+                //手指松开还未开始录像 进行拍照
+                mOnControlCallback?.onCapture()
             }
             CameraState.RECORDING -> {
                 //正在录像 停止录像
@@ -163,22 +178,22 @@ class WechatCameraUiContainer {
     //操作回调
     private var launchRunnable = Runnable {
         //如果还处于按下状态 表示要录像
-        if (isPressRecord && mIsAllowRecord) {
+        if (isPressRecord) {
             //拍摄开始启动
             Log.e("LEOTEST", "launchRunnable")
             mBtnRecord.start()
         }
     }
     private var startRecordRunnable = Runnable {
-        if (isPressRecord && mIsAllowRecord) {
+        if (isPressRecord) {
             Log.e("LEOTEST", "startRecordRunnable")
             mOnControlCallback?.onStartRecord()
             setState(CameraState.RECORDING)
         }
     }
 
-    interface OnControlCallback {
-        fun onCancal()
+    interface IControlCallback {
+        fun onCancel()
         fun onResultOk()
         fun onBack()
         fun onCapture()

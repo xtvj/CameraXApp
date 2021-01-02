@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import com.leo.cameraxlib.ui.activity.CameraXImgActivity
-import com.leo.cameraxlib.ui.activity.WechatCameraXActivity
+import com.leo.cameraxlib.ui.activity.CameraXActivity
 import com.leo.commonutil.app.FileUtils
 import com.leo.commonutil.notify.ToastUtil
 
@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
         }
         mTakeBtn.setOnClickListener {
             startActivityForResult(
-                Intent(this@MainActivity, WechatCameraXActivity::class.java),
+                Intent(this@MainActivity, CameraXActivity::class.java),
                 IMG_VIDEO_REQUEST
             )
         }

@@ -19,7 +19,7 @@ import java.util.*
  * @Version: 1.0
  **/
 class CircleProgressButton : View{
-    var processSec = 5
+    var processSec = 15
     /**
      * 进度条步进
      */
@@ -111,7 +111,7 @@ class CircleProgressButton : View{
                 //开始绘制进度
                 canvas?.drawCircle((cWidth / 2), (cHeight / 2), (cWidth / 2) * bigFactor, bgPaint)
                 canvas?.drawCircle((cWidth / 2), (cHeight / 2), ((cWidth / 2) * (1.40 - bigFactor)).toFloat(), conPaint)
-                if (curPro < maxPro) {
+                if (curPro <= maxPro) {
                     rectF.left = 0f + arc / 2
                     rectF.top = 0f + arc / 2
                     rectF.right = cWidth - arc / 2
@@ -136,8 +136,6 @@ class CircleProgressButton : View{
                     },0L,REFLASH_TIEM)
                 }
             }
-
-            //postInvalidate()
         }else{
             if (showBigButton){
                 //缓慢缩小

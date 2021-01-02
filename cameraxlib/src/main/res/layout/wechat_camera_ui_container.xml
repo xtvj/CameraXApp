@@ -1,81 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/wechat_camera_ui_container"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layoutDirection="ltr">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ImageView
-        android:id="@+id/camera_switch_button"
-        android:layout_width="@dimen/round_button_small"
-        android:layout_height="@dimen/round_button_small"
-        android:layout_marginTop="80dp"
-        android:layout_marginRight="30dp"
-        android:background="@android:color/transparent"
-        android:src="@drawable/ic_switch"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <com.leo.cameraxlib.ui.view.CircleProgressButton
-        android:id="@+id/mBtnRecord"
-        android:layout_width="@dimen/round_button_large"
-        android:layout_height="@dimen/round_button_large"
-        android:layout_marginBottom="70dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/mTvRecordTip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:textColor="@android:color/white"
-        android:textSize="14sp"
-        app:layout_constraintBottom_toTopOf="@+id/mBtnRecord"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <ImageView
-        android:id="@+id/mBack"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginRight="240dp"
-        android:layout_marginBottom="80dp"
-        android:background="@android:color/transparent"
-        android:src="@drawable/ic_back_wechat"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <LinearLayout
-        android:id="@+id/contrainerLl"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/wechat_camera_ui_container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="80dp"
-        android:gravity="center"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        android:layout_height="match_parent"
+        android:layoutDirection="ltr">
 
         <ImageView
-            android:id="@+id/mBtnCancel"
+            android:id="@+id/camera_switch_button"
+            android:layout_width="@dimen/round_button_small"
+            android:layout_height="@dimen/round_button_small"
+            android:layout_marginTop="80dp"
+            android:layout_marginRight="30dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_switch"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.leo.cameraxlib.ui.view.CircleProgressButton
+            android:id="@+id/mBtnRecord"
             android:layout_width="@dimen/round_button_large"
             android:layout_height="@dimen/round_button_large"
-            android:layout_gravity="center"
-            android:layout_marginRight="80dp"
-            android:background="@android:color/transparent"
-            android:src="@drawable/ic_cancel" />
+            android:layout_marginBottom="70dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/mTvRecordTip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toTopOf="@+id/mBtnRecord"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ImageView
-            android:id="@+id/mBtnOK"
-            android:layout_width="@dimen/round_button_large"
-            android:layout_height="@dimen/round_button_large"
-            android:layout_gravity="center"
-            android:layout_marginLeft="80dp"
+            android:id="@+id/mBack"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginRight="240dp"
+            android:layout_marginBottom="80dp"
             android:background="@android:color/transparent"
-            android:src="@drawable/ic_ok" />
-    </LinearLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+            android:src="@drawable/ic_back_wechat"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/contrainerLl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="80dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <ImageView
+                android:id="@+id/mBtnCancel"
+                android:layout_width="@dimen/round_button_large"
+                android:layout_height="@dimen/round_button_large"
+                android:layout_gravity="center"
+                android:layout_marginRight="80dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_cancel" />
+
+            <ImageView
+                android:id="@+id/mBtnOK"
+                android:layout_width="@dimen/round_button_large"
+                android:layout_height="@dimen/round_button_large"
+                android:layout_gravity="center"
+                android:layout_marginLeft="80dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_ok" />
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
