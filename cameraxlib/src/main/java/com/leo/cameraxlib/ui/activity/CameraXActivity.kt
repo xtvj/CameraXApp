@@ -125,8 +125,6 @@ class CameraXActivity : AppCompatActivity(),
         val screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels)
         val rotation = mBinding.viewFinder.display.rotation
         // Bind the CameraProvider to the LifeCycleOwner
-        val cameraSelector = mCameraSelector
-
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener(Runnable {
             // Used to bind the lifecycle of cameras to the lifecycle owner
@@ -168,7 +166,7 @@ class CameraXActivity : AppCompatActivity(),
                 cameraProvider.unbindAll()
                 // Bind use cases to camera
                 mCamera = cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, mImageCapture, mVideoCapture
+                    this, mCameraSelector, preview, mImageCapture, mVideoCapture
                 )
             } catch (exc: Exception) {
                 Log.e(TAG, "Use case binding failed", exc)
