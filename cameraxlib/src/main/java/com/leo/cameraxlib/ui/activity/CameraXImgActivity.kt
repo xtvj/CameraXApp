@@ -7,7 +7,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.hardware.display.DisplayManager
-import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -15,7 +14,6 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
-import android.webkit.MimeTypeMap
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -25,7 +23,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.net.toFile
 import androidx.databinding.DataBindingUtil
 import com.leo.cameraxlib.R
 import com.leo.cameraxlib.databinding.ActivityCameraxImgBinding
@@ -273,22 +270,8 @@ class CameraXImgActivity : AppCompatActivity() {
                                 Intent(android.hardware.Camera.ACTION_NEW_PICTURE, savedUri)
                             )
                         }
-                        // 发送更新文件信息广播
-                        val intent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
-                        intent.data = savedUri
-                        sendBroadcast(intent)
-                        // If the folder selected is an external media directory, this is
-                        // unnecessary but otherwise other apps will not be able to access our
-                        // images unless we scan them using [MediaScannerConnection]
-                        val mimeType = MimeTypeMap.getSingleton()
-                            .getMimeTypeFromExtension(savedUri.toFile().extension)
-                        MediaScannerConnection.scanFile(
-                            this@CameraXImgActivity,
-                            arrayOf(savedUri.toString()),
-                            arrayOf(mimeType)
-                        ) { _, uri ->
-                            Log.d(TAG, "Image capture scanned into media store: $uri")
-                        }
+
+                        notifyMediaScanner(this@CameraXImgActivity, savedUri)
 
                         setResult(Activity.RESULT_OK, Intent().also { it.data = savedUri })
                         finish()
