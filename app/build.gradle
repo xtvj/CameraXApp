@@ -5,6 +5,10 @@ android {
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
 
+    buildFeatures {
+        dataBinding = true
+    }
+
     defaultConfig {
         applicationId "com.leo.camerax"
         minSdkVersion 21
@@ -18,10 +22,6 @@ android {
     compileOptions {
         sourceCompatibility rootProject.ext.java_version
         targetCompatibility rootProject.ext.java_version
-    }
-
-    kotlinOptions {
-        jvmTarget = rootProject.ext.java_version
     }
 
     buildTypes {
@@ -44,9 +44,6 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation project(path: ':cameraxlib')
 
-    /*RxJava*/
-    implementation 'io.reactivex.rxjava2:rxjava:2.1.17'
-    implementation "com.tbruyelle.rxpermissions2:rxpermissions:0.9.4@aar"
     implementation 'com.github.LongAgoLong.AndroidUtil:system:1.6.3'
     implementation 'com.github.LongAgoLong.AndroidUtil:common:1.6.3'
 }

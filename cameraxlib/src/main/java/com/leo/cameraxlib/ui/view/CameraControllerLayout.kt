@@ -5,7 +5,6 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -18,6 +17,7 @@ import android.widget.TextView
 import com.leo.cameraxlib.R
 import com.leo.cameraxlib.ui.enums.CameraState
 
+@SuppressLint("ClickableViewAccessibility")
 class CameraControllerLayout : FrameLayout {
     private val mHandler: Handler = Handler(Looper.getMainLooper())
     private var mOnControlCallback: IControlCallback? = null
@@ -28,13 +28,12 @@ class CameraControllerLayout : FrameLayout {
     private var isPressRecord = false
     private var mState = CameraState.PREVIEW
 
-    private lateinit var mCameraSwitchButton: ImageView
-    private lateinit var mBtnRecord: CircleProgressButton
-    private lateinit var mTvRecordTip: TextView
-    private lateinit var mContrainerLl: LinearLayout
-    private lateinit var mBack: ImageView
-    private lateinit var mBtnCancel: ImageView
-    private lateinit var mBtnOK: ImageView
+    private val mBtnRecord: CircleProgressButton
+    private val mTvRecordTip: TextView
+    private val mContrainerLl: LinearLayout
+    private val mBack: ImageView
+    private val mBtnCancel: ImageView
+    private val mBtnOK: ImageView
 
     /**
      * 捕获按钮动画
@@ -66,6 +65,61 @@ class CameraControllerLayout : FrameLayout {
     init {
         leftAction.duration = 200
         rightAction.duration = 200
+
+        val view =
+            LayoutInflater.from(context).inflate(R.layout.wechat_camera_ui_container, this)
+        view.findViewById<ImageView>(R.id.camera_switch_button).setOnClickListener {
+            mOnControlCallback?.onSwitchCamera()
+        }
+
+        mTvRecordTip = view.findViewById(R.id.mTvRecordTip)
+        mContrainerLl = view.findViewById(R.id.contrainerLl)
+        mBack = view.findViewById(R.id.mBack)
+        mBack.setOnClickListener {
+            mOnControlCallback?.onBack()
+        }
+        mBtnCancel = view.findViewById(R.id.mBtnCancel)
+        mBtnCancel.setOnClickListener {
+            mOnControlCallback?.onCancel()
+        }
+        mBtnOK = view.findViewById(R.id.mBtnOK)
+        mBtnOK.setOnClickListener {
+            mOnControlCallback?.onResultOk()
+        }
+        mBtnRecord = view.findViewById(R.id.mBtnRecord)
+        mBtnRecord.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    isPressRecord = true
+                    mHandler.postDelayed(launchRunnable, 500)
+                }
+                MotionEvent.ACTION_MOVE -> {
+//                    Log.e(TAG,"ACTION_MOVE Y: ${event.y}")
+//                    if (event.y < 0 && state.get() == STATE_RECORDING){
+//                        // 录像中滑动变焦
+//                    }
+                }
+                MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP -> {
+                    // 录像到最大时间而提前结束也会触发， 防止重复调用
+                    if (isPressRecord) {
+                        isPressRecord = false
+                        unPressRecord()
+                    }
+                }
+            }
+            true
+        }
+        mBtnRecord.setOnFinishCallBack(object : CircleProgressButton.OnFinishCallback {
+            override fun progressStart() {
+                mHandler.post(startRecordRunnable)
+            }
+
+            override fun progressFinish() {
+                // 录像到最大时间 直接结束录像
+                isPressRecord = false
+                unPressRecord()
+            }
+        })
     }
 
     fun setState(@CameraState state: Int) {
@@ -92,64 +146,7 @@ class CameraControllerLayout : FrameLayout {
         }
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     fun load(callback: IControlCallback) {
-        val view =
-            LayoutInflater.from(context).inflate(R.layout.wechat_camera_ui_container, this)
-        mCameraSwitchButton = view.findViewById(R.id.camera_switch_button)
-        mCameraSwitchButton.setOnClickListener {
-            mOnControlCallback?.onSwitchCamera()
-        }
-        mTvRecordTip = view.findViewById(R.id.mTvRecordTip)
-        mContrainerLl = view.findViewById(R.id.contrainerLl)
-        mBack = view.findViewById(R.id.mBack)
-        mBack.setOnClickListener {
-            mOnControlCallback?.onBack()
-        }
-        mBtnCancel = view.findViewById(R.id.mBtnCancel)
-        mBtnCancel.setOnClickListener {
-            mOnControlCallback?.onCancel()
-        }
-        mBtnOK = view.findViewById(R.id.mBtnOK)
-        mBtnOK.setOnClickListener {
-            mOnControlCallback?.onResultOk()
-        }
-        mBtnRecord = view.findViewById(R.id.mBtnRecord)
-        mBtnRecord.setOnTouchListener { v, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    Log.e("LEOTEST", "MotionEvent.ACTION_DOWN")
-                    isPressRecord = true
-                    //
-                    mHandler.postDelayed(launchRunnable, 500)
-                }
-                MotionEvent.ACTION_MOVE -> {
-//                    Log.e(TAG,"ACTION_MOVE Y: ${event.y}")
-//                    if (event.y < 0 && state.get() == STATE_RECORDING){
-//                        //录像中滑动变焦
-//                    }
-                }
-                MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP -> {
-                    //录像到最大时间而提前结束也会触发， 防止重复调用
-                    if (isPressRecord) {
-                        isPressRecord = false
-                        unPressRecord()
-                    }
-                }
-            }
-            true
-        }
-        mBtnRecord.setOnFinishCallBack(object : CircleProgressButton.OnFinishCallback {
-            override fun progressStart() {
-                mHandler.postDelayed(startRecordRunnable, 0L)
-            }
-
-            override fun progressFinish() {
-                //录像到最大时间 直接结束录像
-                isPressRecord = false
-                unPressRecord()
-            }
-        })
         this.mOnControlCallback = callback
         setState(CameraState.PREVIEW)
     }
@@ -163,11 +160,11 @@ class CameraControllerLayout : FrameLayout {
         mHandler.removeCallbacks(launchRunnable)
         when (mState) {
             CameraState.PREVIEW -> {
-                //手指松开还未开始录像 进行拍照
+                // 手指松开还未开始录像 进行拍照
                 mOnControlCallback?.onCapture()
             }
             CameraState.RECORDING -> {
-                //正在录像 停止录像
+                // 正在录像 停止录像
                 mBtnRecord.stop()
                 mOnControlCallback?.onStopRecord()
                 setState(CameraState.RECORD_PROCESS)
@@ -175,18 +172,17 @@ class CameraControllerLayout : FrameLayout {
         }
     }
 
-    //操作回调
+    // 操作回调
     private var launchRunnable = Runnable {
-        //如果还处于按下状态 表示要录像
+        // 如果还处于按下状态 表示要录像
         if (isPressRecord) {
-            //拍摄开始启动
-            Log.e("LEOTEST", "launchRunnable")
+            // 拍摄开始启动
             mBtnRecord.start()
         }
     }
+
     private var startRecordRunnable = Runnable {
         if (isPressRecord) {
-            Log.e("LEOTEST", "startRecordRunnable")
             mOnControlCallback?.onStartRecord()
             setState(CameraState.RECORDING)
         }

@@ -23,10 +23,6 @@ android {
         targetCompatibility rootProject.ext.java_version
     }
 
-    kotlinOptions {
-        jvmTarget = rootProject.ext.java_version
-    }
-
     buildTypes {
         release {
             minifyEnabled false
@@ -63,9 +59,4 @@ dependencies {
 
     // CameraX Extensions library
     // implementation "androidx.camera:camera-extensions:1.0.0-alpha05"
-
-    /*RxJava*/
-    compileOnly 'io.reactivex.rxjava2:rxjava:2.1.17'
-    compileOnly "com.tbruyelle.rxpermissions2:rxpermissions:0.9.4@aar"
-
 }
