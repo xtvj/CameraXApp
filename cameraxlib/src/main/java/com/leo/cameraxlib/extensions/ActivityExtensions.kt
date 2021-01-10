@@ -1,11 +1,16 @@
 package com.leo.cameraxlib.extensions
 
 import android.app.Activity
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
+import android.util.Log
 import android.view.View
 import android.webkit.MimeTypeMap
 import androidx.camera.core.AspectRatio
@@ -13,9 +18,12 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toFile
 import com.leo.cameraxlib.R
 import java.io.File
+import java.io.IOException
+import java.io.InputStream
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+
 
 const val ANIMATION_SLOW_MILLIS = 200L
 
@@ -92,6 +100,16 @@ fun Activity.notifyMediaScanner(context: Context, notifyUri: Uri) {
     // images unless we scan them using [MediaScannerConnection]
     val mimeType = MimeTypeMap.getSingleton()
         .getMimeTypeFromExtension(notifyUri.toFile().extension)
+
+    // Implicit broadcasts will be ignored for devices running API level >= 24
+    // so if you only target API level 24+ you can remove this statement
+    if (mimeType!!.startsWith("image/", true)
+        && Build.VERSION.SDK_INT < Build.VERSION_CODES.N
+    ) {
+        sendBroadcast(
+            Intent(android.hardware.Camera.ACTION_NEW_PICTURE, notifyUri)
+        )
+    }
     MediaScannerConnection.scanFile(
         context,
         arrayOf(notifyUri.toString()),

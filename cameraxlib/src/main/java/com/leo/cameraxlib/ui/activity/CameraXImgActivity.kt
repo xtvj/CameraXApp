@@ -263,14 +263,6 @@ class CameraXImgActivity : AppCompatActivity() {
                         val savedUri = output.savedUri ?: Uri.fromFile(photoFile)
                         Log.d(TAG, "Photo capture succeeded: $savedUri")
 
-                        // Implicit broadcasts will be ignored for devices running API level >= 24
-                        // so if you only target API level 24+ you can remove this statement
-                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                            this@CameraXImgActivity.sendBroadcast(
-                                Intent(android.hardware.Camera.ACTION_NEW_PICTURE, savedUri)
-                            )
-                        }
-
                         notifyMediaScanner(this@CameraXImgActivity, savedUri)
 
                         setResult(Activity.RESULT_OK, Intent().also { it.data = savedUri })

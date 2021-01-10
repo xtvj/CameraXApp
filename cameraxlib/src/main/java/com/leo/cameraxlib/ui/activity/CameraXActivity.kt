@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
@@ -27,9 +28,6 @@ import com.leo.cameraxlib.ui.view.CameraControllerLayout
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 
 @SuppressLint("RestrictedApi", "CheckResult")
 class CameraXActivity : AppCompatActivity(),
@@ -176,6 +174,8 @@ class CameraXActivity : AppCompatActivity(),
 
     override fun onCancel() {
         mBinding.cameraController.setState(CameraState.PREVIEW)
+        mBinding.resultImg.visibility = View.INVISIBLE
+        mBinding.videoTypeImg.visibility = View.GONE
     }
 
     override fun onResultOk() {
@@ -222,13 +222,16 @@ class CameraXActivity : AppCompatActivity(),
                     override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                         mSavedUri = output.savedUri ?: Uri.fromFile(photoFile)
                         Log.d(TAG, "Photo capture succeeded: $mSavedUri")
-
-                        // Implicit broadcasts will be ignored for devices running API level >= 24
-                        // so if you only target API level 24+ you can remove this statement
-                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                            this@CameraXActivity.sendBroadcast(
-                                Intent(android.hardware.Camera.ACTION_NEW_PICTURE, mSavedUri)
-                            )
+                        val toBitmap = mSavedUri!!.toBitmap(
+                            this@CameraXActivity,
+                            mBinding.resultImg.width,
+                            mBinding.resultImg.height
+                        )
+                        mBinding.resultImg.post {
+                            mBinding.resultImg.run {
+                                visibility = View.VISIBLE
+                                setImageBitmap(toBitmap)
+                            }
                         }
 
                         notifyMediaScanner(this@CameraXActivity, mSavedUri!!)
@@ -261,12 +264,38 @@ class CameraXActivity : AppCompatActivity(),
             object : VideoCapture.OnVideoSavedCallback {
                 override fun onVideoSaved(file: File) {
                     mSavedUri = Uri.fromFile(file)
+                    val toBitmap = mSavedUri!!.toBitmap(
+                        this@CameraXActivity,
+                        mBinding.resultImg.width,
+                        mBinding.resultImg.height
+                    )
+                    mBinding.resultImg.post {
+                        mBinding.videoTypeImg.run {
+                            visibility = View.VISIBLE
+                            setOnClickListener {
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW)
+                                    intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                    intent.setDataAndType(
+                                        mSavedUri!!.toContentUri(this@CameraXActivity),
+                                        "video/*"
+                                    )
+                                    startActivity(intent)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+                        mBinding.resultImg.run {
+                            visibility = View.VISIBLE
+                            setImageBitmap(toBitmap)
+                        }
+                    }
                     notifyMediaScanner(this@CameraXActivity, mSavedUri!!)
                     mBinding.cameraController.setState(CameraState.RECORD_TAKEN)
                 }
 
                 override fun onError(videoCaptureError: Int, message: String, cause: Throwable?) {
-                    TODO("Not yet implemented")
                 }
             })
     }

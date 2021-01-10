@@ -11,15 +11,14 @@ import android.view.View
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
 import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
+import androidx.databinding.DataBindingUtil
 import com.leo.cameraxlib.R
+import com.leo.cameraxlib.databinding.WechatCameraUiContainerBinding
 import com.leo.cameraxlib.ui.enums.CameraState
 
 @SuppressLint("ClickableViewAccessibility")
 class CameraControllerLayout : FrameLayout {
-    private val mHandler: Handler = Handler(Looper.getMainLooper())
+    private val mMainHandler: Handler = Handler(Looper.getMainLooper())
     private var mOnControlCallback: IControlCallback? = null
 
     /**
@@ -28,12 +27,7 @@ class CameraControllerLayout : FrameLayout {
     private var isPressRecord = false
     private var mState = CameraState.PREVIEW
 
-    private val mBtnRecord: CircleProgressButton
-    private val mTvRecordTip: TextView
-    private val mContrainerLl: LinearLayout
-    private val mBack: ImageView
-    private val mBtnCancel: ImageView
-    private val mBtnOK: ImageView
+    private val mBinging: WechatCameraUiContainerBinding
 
     /**
      * 捕获按钮动画
@@ -66,32 +60,18 @@ class CameraControllerLayout : FrameLayout {
         leftAction.duration = 200
         rightAction.duration = 200
 
-        val view =
-            LayoutInflater.from(context).inflate(R.layout.wechat_camera_ui_container, this)
-        view.findViewById<ImageView>(R.id.camera_switch_button).setOnClickListener {
-            mOnControlCallback?.onSwitchCamera()
-        }
+        mBinging = DataBindingUtil.inflate(
+            LayoutInflater.from(context),
+            R.layout.wechat_camera_ui_container,
+            this, true
+        )
+        mBinging.mEventListener = EventListener()
 
-        mTvRecordTip = view.findViewById(R.id.mTvRecordTip)
-        mContrainerLl = view.findViewById(R.id.contrainerLl)
-        mBack = view.findViewById(R.id.mBack)
-        mBack.setOnClickListener {
-            mOnControlCallback?.onBack()
-        }
-        mBtnCancel = view.findViewById(R.id.mBtnCancel)
-        mBtnCancel.setOnClickListener {
-            mOnControlCallback?.onCancel()
-        }
-        mBtnOK = view.findViewById(R.id.mBtnOK)
-        mBtnOK.setOnClickListener {
-            mOnControlCallback?.onResultOk()
-        }
-        mBtnRecord = view.findViewById(R.id.mBtnRecord)
-        mBtnRecord.setOnTouchListener { v, event ->
+        mBinging.mBtnRecord.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     isPressRecord = true
-                    mHandler.postDelayed(launchRunnable, 500)
+                    mMainHandler.postDelayed(launchRunnable, 500)
                 }
                 MotionEvent.ACTION_MOVE -> {
 //                    Log.e(TAG,"ACTION_MOVE Y: ${event.y}")
@@ -109,9 +89,9 @@ class CameraControllerLayout : FrameLayout {
             }
             true
         }
-        mBtnRecord.setOnFinishCallBack(object : CircleProgressButton.OnFinishCallback {
+        mBinging.mBtnRecord.setOnFinishCallBack(object : CircleProgressButton.OnFinishCallback {
             override fun progressStart() {
-                mHandler.post(startRecordRunnable)
+                mMainHandler.post(startRecordRunnable)
             }
 
             override fun progressFinish() {
@@ -124,25 +104,32 @@ class CameraControllerLayout : FrameLayout {
 
     fun setState(@CameraState state: Int) {
         this.mState = state
-        if (state == CameraState.PICTURE_TAKEN
-            || state == CameraState.RECORD_PROCESS
-        ) {
-            showBtnLayout()
-        }
-        mHandler.post {
-            mTvRecordTip.visibility =
-                if (state == CameraState.PREVIEW) View.VISIBLE else View.GONE
-            mBtnRecord.visibility =
-                if (state == CameraState.PREVIEW
-                    || state == CameraState.RECORDING
-                ) View.VISIBLE else View.GONE
-            mBack.visibility =
-                if (state == CameraState.PREVIEW) View.VISIBLE else View.GONE
-            mContrainerLl.visibility =
-                if (state == CameraState.PICTURE_TAKEN
-                    || state == CameraState.RECORD_PROCESS
-                    || state == CameraState.RECORD_TAKEN
-                ) View.VISIBLE else View.GONE
+        mMainHandler.post {
+            if (state == CameraState.PICTURE_TAKEN
+                || state == CameraState.RECORD_PROCESS
+            ) {
+                showBtnLayout()
+            }
+            mBinging.run {
+                mTvRecordTip.visibility =
+                    if (state == CameraState.PREVIEW) View.VISIBLE else View.GONE
+                mBtnRecord.visibility =
+                    if (state == CameraState.PREVIEW
+                        || state == CameraState.RECORDING
+                    ) View.VISIBLE else View.GONE
+                mBack.visibility =
+                    if (state == CameraState.PREVIEW) View.VISIBLE else View.GONE
+                contrainerLl.visibility =
+                    if (state == CameraState.PICTURE_TAKEN
+                        || state == CameraState.RECORD_PROCESS
+                        || state == CameraState.RECORD_TAKEN
+                    ) View.VISIBLE else View.GONE
+                cameraSwitchButton.visibility =
+                    if (state == CameraState.PICTURE_TAKEN
+                        || state == CameraState.RECORD_PROCESS
+                        || state == CameraState.RECORD_TAKEN
+                    ) View.GONE else View.VISIBLE
+            }
         }
     }
 
@@ -152,12 +139,14 @@ class CameraControllerLayout : FrameLayout {
     }
 
     private fun showBtnLayout() {
-        mBtnCancel.startAnimation(leftAction)
-        mBtnOK.startAnimation(rightAction)
+        mBinging.run {
+            mBtnCancel.startAnimation(leftAction)
+            mBtnOK.startAnimation(rightAction)
+        }
     }
 
     private fun unPressRecord() {
-        mHandler.removeCallbacks(launchRunnable)
+        mMainHandler.removeCallbacks(launchRunnable)
         when (mState) {
             CameraState.PREVIEW -> {
                 // 手指松开还未开始录像 进行拍照
@@ -165,7 +154,7 @@ class CameraControllerLayout : FrameLayout {
             }
             CameraState.RECORDING -> {
                 // 正在录像 停止录像
-                mBtnRecord.stop()
+                mBinging.mBtnRecord.stop()
                 mOnControlCallback?.onStopRecord()
                 setState(CameraState.RECORD_PROCESS)
             }
@@ -177,7 +166,7 @@ class CameraControllerLayout : FrameLayout {
         // 如果还处于按下状态 表示要录像
         if (isPressRecord) {
             // 拍摄开始启动
-            mBtnRecord.start()
+            mBinging.mBtnRecord.start()
         }
     }
 
@@ -185,6 +174,25 @@ class CameraControllerLayout : FrameLayout {
         if (isPressRecord) {
             mOnControlCallback?.onStartRecord()
             setState(CameraState.RECORDING)
+        }
+    }
+
+    inner class EventListener {
+        fun onClick(view: View) {
+            when (view.id) {
+                R.id.camera_switch_button -> {
+                    mOnControlCallback?.onSwitchCamera()
+                }
+                R.id.mBack -> {
+                    mOnControlCallback?.onBack()
+                }
+                R.id.mBtnCancel -> {
+                    mOnControlCallback?.onCancel()
+                }
+                R.id.mBtnOK -> {
+                    mOnControlCallback?.onResultOk()
+                }
+            }
         }
     }
 

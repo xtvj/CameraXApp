@@ -2,6 +2,13 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <data>
+
+        <variable
+            name="mEventListener"
+            type="com.leo.cameraxlib.ui.view.CameraControllerLayout.EventListener" />
+    </data>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/wechat_camera_ui_container"
         android:layout_width="match_parent"
@@ -15,6 +22,7 @@
             android:layout_marginTop="50dp"
             android:layout_marginRight="30dp"
             android:background="@android:color/transparent"
+            android:onClick="@{mEventListener.onClick}"
             android:src="@drawable/ic_switch"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -35,6 +43,7 @@
             android:layout_marginBottom="20dp"
             android:textColor="@android:color/white"
             android:textSize="14sp"
+            android:text="@string/record_tip"
             app:layout_constraintBottom_toTopOf="@+id/mBtnRecord"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
@@ -46,6 +55,7 @@
             android:layout_marginRight="240dp"
             android:layout_marginBottom="80dp"
             android:background="@android:color/transparent"
+            android:onClick="@{mEventListener.onClick}"
             android:src="@drawable/ic_back_wechat"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -69,6 +79,7 @@
                 android:layout_gravity="center"
                 android:layout_marginRight="80dp"
                 android:background="@android:color/transparent"
+                android:onClick="@{mEventListener.onClick}"
                 android:src="@drawable/ic_cancel" />
 
             <ImageView
@@ -78,6 +89,7 @@
                 android:layout_gravity="center"
                 android:layout_marginLeft="80dp"
                 android:background="@android:color/transparent"
+                android:onClick="@{mEventListener.onClick}"
                 android:src="@drawable/ic_ok" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
