@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
+import android.util.Rational
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -58,7 +59,7 @@ class CameraXActivity : AppCompatActivity(),
     private var mVideoCapture: VideoCapture? = null
     private var mCamera: Camera? = null
 
-    private var mSavedUri: Uri? = null
+    private var mSavedFileUri: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -140,6 +141,7 @@ class CameraXActivity : AppCompatActivity(),
                 // We request aspect ratio but no resolution to match preview config, but letting
                 // CameraX optimize for whatever specific resolution best fits our use cases
                 .setTargetAspectRatio(screenAspectRatio)
+//                .setTargetAspectRatioCustom(Rational(metrics.widthPixels, metrics.heightPixels))
                 .setFlashMode(ImageCapture.FLASH_MODE_AUTO)
                 // Set initial target rotation, we will have to call this again if rotation changes
                 // during the lifecycle of this use case
@@ -179,7 +181,7 @@ class CameraXActivity : AppCompatActivity(),
     }
 
     override fun onResultOk() {
-        setResult(Activity.RESULT_OK, Intent().also { it.data = mSavedUri })
+        setResult(Activity.RESULT_OK, Intent().also { it.data = mSavedFileUri })
         finish()
     }
 
@@ -220,9 +222,9 @@ class CameraXActivity : AppCompatActivity(),
 
                     @SuppressLint("VisibleForTests")
                     override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                        mSavedUri = output.savedUri ?: Uri.fromFile(photoFile)
-                        Log.d(TAG, "Photo capture succeeded: $mSavedUri")
-                        val toBitmap = mSavedUri!!.toBitmap(
+                        mSavedFileUri = output.savedUri ?: photoFile.fileUri()
+                        Log.d(TAG, "Photo capture succeeded: $mSavedFileUri")
+                        val toBitmap = photoFile.bitmap(
                             this@CameraXActivity,
                             mBinding.resultImg.width,
                             mBinding.resultImg.height
@@ -234,7 +236,7 @@ class CameraXActivity : AppCompatActivity(),
                             }
                         }
 
-                        notifyMediaScanner(this@CameraXActivity, mSavedUri!!)
+                        notifyMediaScanner(this@CameraXActivity, mSavedFileUri!!)
                         mBinding.cameraController.setState(CameraState.PICTURE_TAKEN)
                     }
                 })
@@ -263,8 +265,8 @@ class CameraXActivity : AppCompatActivity(),
             cameraExecutor,
             object : VideoCapture.OnVideoSavedCallback {
                 override fun onVideoSaved(file: File) {
-                    mSavedUri = Uri.fromFile(file)
-                    val toBitmap = mSavedUri!!.toBitmap(
+                    mSavedFileUri = file.fileUri()
+                    val toBitmap = file.bitmap(
                         this@CameraXActivity,
                         mBinding.resultImg.width,
                         mBinding.resultImg.height
@@ -277,7 +279,7 @@ class CameraXActivity : AppCompatActivity(),
                                     val intent = Intent(Intent.ACTION_VIEW)
                                     intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
                                     intent.setDataAndType(
-                                        mSavedUri!!.toContentUri(this@CameraXActivity),
+                                        file.contentUri(this@CameraXActivity),
                                         "video/*"
                                     )
                                     startActivity(intent)
@@ -291,7 +293,7 @@ class CameraXActivity : AppCompatActivity(),
                             setImageBitmap(toBitmap)
                         }
                     }
-                    notifyMediaScanner(this@CameraXActivity, mSavedUri!!)
+                    notifyMediaScanner(this@CameraXActivity, mSavedFileUri!!)
                     mBinding.cameraController.setState(CameraState.RECORD_TAKEN)
                 }
 

@@ -1,17 +1,18 @@
 package com.leo.cameraxlib.ui.activity
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.hardware.display.DisplayManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
+import android.util.Rational
 import android.view.KeyEvent
 import android.view.View
 import android.widget.ImageButton
@@ -32,6 +33,7 @@ import java.lang.ref.WeakReference
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
+@SuppressLint("RestrictedApi")
 class CameraXImgActivity : AppCompatActivity() {
 
     companion object {
@@ -169,6 +171,7 @@ class CameraXImgActivity : AppCompatActivity() {
                 // CameraX optimize for whatever specific resolution best fits our use cases
                 .setFlashMode(ImageCapture.FLASH_MODE_AUTO)
                 .setTargetAspectRatio(screenAspectRatio)
+                //                .setTargetAspectRatioCustom(Rational(metrics.widthPixels, metrics.heightPixels))
                 // Set initial target rotation, we will have to call this again if rotation changes
                 // during the lifecycle of this use case
                 .setTargetRotation(rotation)
@@ -260,12 +263,12 @@ class CameraXImgActivity : AppCompatActivity() {
                     }
 
                     override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                        val savedUri = output.savedUri ?: Uri.fromFile(photoFile)
-                        Log.d(TAG, "Photo capture succeeded: $savedUri")
+                        val savedFileUri = output.savedUri ?: photoFile.fileUri()
+                        Log.d(TAG, "Photo capture succeeded: $savedFileUri")
 
-                        notifyMediaScanner(this@CameraXImgActivity, savedUri)
+                        notifyMediaScanner(this@CameraXImgActivity, savedFileUri)
 
-                        setResult(Activity.RESULT_OK, Intent().also { it.data = savedUri })
+                        setResult(Activity.RESULT_OK, Intent().also { it.data = savedFileUri })
                         finish()
                     }
                 })
