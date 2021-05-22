@@ -74,14 +74,7 @@ class CameraXActivity : AppCompatActivity(),
         if (!allPermissionsGranted(REQUIRED_PERMISSIONS)) {
             val permissionRequest =
                 registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-                    var isAllPermissionsGranted = true
-                    it.values.forEach { value ->
-                        if (!value) {
-                            isAllPermissionsGranted = false
-                            return@forEach
-                        }
-                    }
-                    if (isAllPermissionsGranted) {
+                    if (it.values.all { value -> value }) {
                         bindCameraUseCases()
                     } else {
                         Toast.makeText(
