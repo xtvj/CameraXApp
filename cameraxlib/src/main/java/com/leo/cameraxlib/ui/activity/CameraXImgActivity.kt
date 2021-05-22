@@ -12,9 +12,9 @@ import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
+import android.util.Size
 import android.view.KeyEvent
 import android.view.View
-import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -169,8 +169,10 @@ class CameraXImgActivity : AppCompatActivity() {
                 // We request aspect ratio but no resolution to match preview config, but letting
                 // CameraX optimize for whatever specific resolution best fits our use cases
                 .setFlashMode(ImageCapture.FLASH_MODE_AUTO)
-                .setTargetAspectRatio(screenAspectRatio)
-                //                .setTargetAspectRatioCustom(Rational(metrics.widthPixels, metrics.heightPixels))
+                // 设置固定比例 16:9 4:3
+//                .setTargetAspectRatio(screenAspectRatio)
+                // 设置自定义尺寸 -> 可设置全屏
+                .setTargetResolution(Size(metrics.widthPixels, metrics.heightPixels))
                 // Set initial target rotation, we will have to call this again if rotation changes
                 // during the lifecycle of this use case
                 .setTargetRotation(rotation)
@@ -196,9 +198,7 @@ class CameraXImgActivity : AppCompatActivity() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                val shutter = mBinding.cameraContainer
-                    .findViewById<ImageButton>(R.id.camera_capture_button)
-                shutter.simulateClick()
+                mBinding.cameraCaptureButton.simulateClick()
                 true
             }
             else -> super.onKeyDown(keyCode, event)
