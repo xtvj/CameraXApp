@@ -11,14 +11,13 @@ import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
-import android.util.Rational
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.leo.cameraxlib.R
@@ -27,6 +26,7 @@ import com.leo.cameraxlib.extensions.*
 import com.leo.cameraxlib.ui.enums.CameraState
 import com.leo.cameraxlib.ui.view.CameraControllerLayout
 import java.io.File
+import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -36,7 +36,6 @@ class CameraXActivity : AppCompatActivity(),
 
     companion object {
         const val TAG = "CameraXActivity"
-        private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO,
@@ -65,35 +64,34 @@ class CameraXActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_camerax)
         mBinding.run {
-            viewFinder.preferredImplementationMode =
-                PreviewView.ImplementationMode.TEXTURE_VIEW
+            viewFinder.implementationMode =
+                PreviewView.ImplementationMode.COMPATIBLE
             cameraController.load(this@CameraXActivity)
         }
 
         // Request camera permissions
         if (!allPermissionsGranted(REQUIRED_PERMISSIONS)) {
-            ActivityCompat.requestPermissions(
-                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
-            )
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        if (requestCode == REQUEST_CODE_PERMISSIONS) {
-            if (allPermissionsGranted(REQUIRED_PERMISSIONS)) {
-                bindCameraUseCases()
-            } else {
-                Toast.makeText(
-                    this,
-                    "Permissions not granted by the user.",
-                    Toast.LENGTH_SHORT
-                ).show()
-                finish()
-            }
+            val permissionRequest =
+                registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+                    var isAllPermissionsGranted = true
+                    it.values.forEach { value ->
+                        if (!value) {
+                            isAllPermissionsGranted = false
+                            return@forEach
+                        }
+                    }
+                    if (isAllPermissionsGranted) {
+                        bindCameraUseCases()
+                    } else {
+                        Toast.makeText(
+                            this,
+                            "Permissions not granted by the user.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        finish()
+                    }
+                }
+            permissionRequest.launch(REQUIRED_PERMISSIONS)
         }
     }
 
@@ -132,7 +130,7 @@ class CameraXActivity : AppCompatActivity(),
             val preview = Preview.Builder()
                 .build()
                 .also {
-                    it.setSurfaceProvider(mBinding.viewFinder.createSurfaceProvider())
+                    it.setSurfaceProvider(mBinding.viewFinder.surfaceProvider)
                 }
 
             // ImageCapture
@@ -260,13 +258,14 @@ class CameraXActivity : AppCompatActivity(),
                 FILENAME,
                 VIDEO_EXTENSION
             )
+        val outputOptions = VideoCapture.OutputFileOptions.Builder(videoFile).build()
         mVideoCapture?.startRecording(
-            videoFile,
+            outputOptions,
             cameraExecutor,
             object : VideoCapture.OnVideoSavedCallback {
-                override fun onVideoSaved(file: File) {
-                    mSavedFileUri = file.fileUri()
-                    val toBitmap = file.bitmap(
+                override fun onVideoSaved(outputFileResults: VideoCapture.OutputFileResults) {
+                    mSavedFileUri = outputFileResults.savedUri
+                    val toBitmap = videoFile.bitmap(
                         this@CameraXActivity,
                         mBinding.resultImg.width,
                         mBinding.resultImg.height
@@ -279,7 +278,7 @@ class CameraXActivity : AppCompatActivity(),
                                     val intent = Intent(Intent.ACTION_VIEW)
                                     intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
                                     intent.setDataAndType(
-                                        file.contentUri(this@CameraXActivity),
+                                        videoFile.contentUri(this@CameraXActivity),
                                         "video/*"
                                     )
                                     startActivity(intent)
@@ -295,6 +294,7 @@ class CameraXActivity : AppCompatActivity(),
                     }
                     notifyMediaScanner(this@CameraXActivity, mSavedFileUri!!)
                     mBinding.cameraController.setState(CameraState.RECORD_TAKEN)
+
                 }
 
                 override fun onError(videoCaptureError: Int, message: String, cause: Throwable?) {

@@ -1,56 +1,50 @@
 package com.leo.camerax
 
-import android.app.Activity
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Button
-import com.leo.cameraxlib.ui.activity.CameraXImgActivity
+import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
+import com.leo.camerax.databinding.ActivityMainBinding
 import com.leo.cameraxlib.ui.activity.CameraXActivity
+import com.leo.cameraxlib.ui.activity.CameraXImgActivity
 import com.leo.commonutil.app.FileUtils
 import com.leo.commonutil.notify.ToastUtil
+import java.lang.ref.WeakReference
 
 class MainActivity : AppCompatActivity() {
-    companion object {
-        const val IMG_REQUEST = 0
-        const val IMG_VIDEO_REQUEST = 1
-    }
-
-    private lateinit var mTakePhotoBtn: Button
-    private lateinit var mTakeBtn: Button
+    private lateinit var mBinding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        mTakePhotoBtn = findViewById(R.id.takePhotoBtn)
-        mTakeBtn = findViewById(R.id.takeBtn)
-        mTakePhotoBtn.setOnClickListener {
-            startActivityForResult(
-                Intent(this@MainActivity, CameraXImgActivity::class.java),
-                IMG_REQUEST
-            )
-        }
-        mTakeBtn.setOnClickListener {
-            startActivityForResult(
-                Intent(this@MainActivity, CameraXActivity::class.java),
-                IMG_VIDEO_REQUEST
-            )
-        }
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        mBinding.mEventListener = EventListener(WeakReference(this))
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == Activity.RESULT_OK) {
-            data ?: return
-            val uri = data.data
-            when (requestCode) {
-                IMG_REQUEST -> {
-                    val path = FileUtils.getPath(this, uri)
-                    ToastUtil.show(text = path)
+    val imgRequest =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val result = it.data ?: return@registerForActivityResult
+            val path = FileUtils.getPath(this, result.data)
+            ToastUtil.show(text = path)
+        }
+
+    val imgVideoRequest =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val result = it.data ?: return@registerForActivityResult
+            val path = FileUtils.getPath(this, result.data)
+            ToastUtil.show(text = path)
+        }
+
+    inner class EventListener constructor(private val mActRef: WeakReference<MainActivity>) {
+        fun onClick(v: View) {
+            val activity = mActRef.get() ?: return
+            when (v.id) {
+                R.id.takePhotoBtn -> {
+                    imgRequest.launch(Intent(activity, CameraXImgActivity::class.java))
                 }
-                IMG_VIDEO_REQUEST -> {
-                    val path = FileUtils.getPath(this, uri)
-                    ToastUtil.show(text = path)
+                R.id.takeBtn -> {
+                    imgVideoRequest.launch(Intent(activity, CameraXActivity::class.java))
                 }
             }
         }

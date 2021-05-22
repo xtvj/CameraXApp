@@ -12,17 +12,16 @@ import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
-import android.util.Rational
 import android.view.KeyEvent
 import android.view.View
 import android.widget.ImageButton
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.core.ImageCapture.Metadata
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.leo.cameraxlib.R
@@ -38,7 +37,6 @@ class CameraXImgActivity : AppCompatActivity() {
 
     companion object {
         const val TAG = "CameraXImgActivity"
-        private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
     }
 
@@ -83,32 +81,33 @@ class CameraXImgActivity : AppCompatActivity() {
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_camerax_img)
         mBinding.run {
             mEventListener = EventListener(WeakReference(this@CameraXImgActivity))
-            viewFinder.preferredImplementationMode =
-                PreviewView.ImplementationMode.TEXTURE_VIEW
+            viewFinder.implementationMode =
+                PreviewView.ImplementationMode.COMPATIBLE
         }
 
         // Request camera permissions
         if (!allPermissionsGranted(REQUIRED_PERMISSIONS)) {
-            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        if (requestCode == REQUEST_CODE_PERMISSIONS) {
-            if (allPermissionsGranted(REQUIRED_PERMISSIONS)) {
-                bindCameraUseCases()
-            } else {
-                Toast.makeText(
-                    this,
-                    "Permissions not granted by the user.",
-                    Toast.LENGTH_SHORT
-                ).show()
-                finish()
-            }
+            val permissionRequest =
+                registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+                    var isAllPermissionsGranted = true
+                    it.values.forEach { value ->
+                        if (!value) {
+                            isAllPermissionsGranted = false
+                            return@forEach
+                        }
+                    }
+                    if (isAllPermissionsGranted) {
+                        bindCameraUseCases()
+                    } else {
+                        Toast.makeText(
+                            this,
+                            "Permissions not granted by the user.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        finish()
+                    }
+                }
+            permissionRequest.launch(REQUIRED_PERMISSIONS)
         }
     }
 
@@ -164,7 +163,7 @@ class CameraXImgActivity : AppCompatActivity() {
                 .build()
 
             // Attach the viewfinder's surface provider to preview use case
-            mPreview?.setSurfaceProvider(mBinding.viewFinder.createSurfaceProvider())
+            mPreview?.setSurfaceProvider(mBinding.viewFinder.surfaceProvider)
             mImageCapture = ImageCapture.Builder()
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
                 // We request aspect ratio but no resolution to match preview config, but letting
