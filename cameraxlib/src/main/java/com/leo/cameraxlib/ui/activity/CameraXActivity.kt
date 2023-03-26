@@ -233,8 +233,9 @@ class CameraXActivity : AppCompatActivity(),
                                 setImageBitmap(toBitmap)
                             }
                         }
-
-                        notifyMediaScanner(this@CameraXActivity, mSavedFileUri!!)
+//                        mSavedFileUri?.let {
+//                            notifyMediaScanner(this@CameraXActivity, mSavedFileUri!!)
+//                        }
                         mBinding.cameraController.setState(CameraState.PICTURE_TAKEN)
                     }
                 })
@@ -292,7 +293,9 @@ class CameraXActivity : AppCompatActivity(),
                             setImageBitmap(toBitmap)
                         }
                     }
-                    notifyMediaScanner(this@CameraXActivity, mSavedFileUri!!)
+//                    mSavedFileUri?.let {
+//                        notifyMediaScanner(this@CameraXActivity, mSavedFileUri!!)
+//                    }
                     mBinding.cameraController.setState(CameraState.RECORD_TAKEN)
 
                 }

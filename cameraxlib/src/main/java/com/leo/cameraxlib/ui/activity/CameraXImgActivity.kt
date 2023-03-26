@@ -258,7 +258,9 @@ class CameraXImgActivity : AppCompatActivity() {
                         val savedFileUri = output.savedUri ?: photoFile.fileUri()
                         Log.d(TAG, "Photo capture succeeded: $savedFileUri")
 
-                        notifyMediaScanner(this@CameraXImgActivity, savedFileUri)
+//                        savedFileUri?.let {
+//                            notifyMediaScanner(this@CameraXImgActivity, savedFileUri)
+//                        }
 
                         setResult(Activity.RESULT_OK, Intent().also { it.data = savedFileUri })
                         finish()

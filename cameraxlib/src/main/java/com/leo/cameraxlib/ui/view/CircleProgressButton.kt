@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.os.Handler
+import android.os.Looper
 import android.os.Message
 import android.util.AttributeSet
 import android.view.View
@@ -41,18 +42,17 @@ class CircleProgressButton : View{
     private var bigFactor = 0.8f
     private var starting = false
 
-    private var cHandler : Handler
+    private var cHandler : Handler = object : Handler(Looper.getMainLooper()){
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+            postInvalidate()
+        }
+    }
     private var tr : Timer? = null
 
     constructor(context: Context?) : this(context, null)
     constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs, 0)
     constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr){
-        cHandler = object : Handler(){
-            override fun handleMessage(msg: Message?) {
-                super.handleMessage(msg)
-                postInvalidate()
-            }
-        }
         initPaint()
     }
     private fun initPaint(){

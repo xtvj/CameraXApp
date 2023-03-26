@@ -19,7 +19,8 @@
             android:rotationAnimation="seamless"
             android:screenOrientation="fullUser"
             android:theme="@style/CameraTheme"
-            tools:targetApi="O">
+            tools:targetApi="O"
+            android:exported="true">
             <!-- Register as a system camera app -->
             <intent-filter>
                 <action android:name="android.media.action.IMAGE_CAPTURE" />
@@ -40,7 +41,8 @@
             android:rotationAnimation="seamless"
             android:screenOrientation="fullUser"
             android:theme="@style/CameraTheme"
-            tools:targetApi="O">
+            tools:targetApi="O"
+            android:exported="true">
             <!-- Register as a system camera app -->
             <intent-filter>
                 <action android:name="android.media.action.IMAGE_CAPTURE" />
