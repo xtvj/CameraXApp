@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
@@ -19,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.leo.cameraxlib.R
@@ -260,6 +262,13 @@ class CameraXActivity : AppCompatActivity(),
                 VIDEO_EXTENSION
             )
         val outputOptions = VideoCapture.OutputFileOptions.Builder(videoFile).build()
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.RECORD_AUDIO
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
         mVideoCapture?.startRecording(
             outputOptions,
             cameraExecutor,
